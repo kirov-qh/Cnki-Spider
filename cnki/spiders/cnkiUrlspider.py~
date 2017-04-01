@@ -1,0 +1,36 @@
+from scrapy_redis.spiders import RedisSpider
+from cnki.items import CnkiLoader
+from redis import Redis
+from scrapy import log
+from time import sleep
+
+class Myspider(RedisSpider):
+    '''spider that reads urls from redis queue (myspider:start_urls).'''
+    name = 'myspider_cnkipage'
+    redis_key = 'myspider:cnkisearch_urls'
+
+    def __init__(self, *args, **kwargs):
+        domain = kwargs.pop('domain', '')
+        self.allowed_domains = filter(None, domain.split(','))
+        super(Myspider, self).__init__(*args, **kwargs)
+        self.url = 'http://search.cnki.net/search.aspx?q=%E6%9E%97%E4%B8%9A'
+
+    def parse(self, response):
+        el = CnkiLoader(response=response)
+        PageUrl = response.xpath('//p[@id="page"]/a[11]').extract()
+        self.log(PageUrl, level=log.DEBUG)
+        r = Redis()
+        
+        '''Turn to next page.'''
+        if PageUrl != []:
+            r.lpush('myspider:cnkisearch_urls', PageUrl[0])
+            sleep(1)
+            el.add_value('UrlofPage', PageUrl[0])
+            
+        '''Collect URLs on the page.'''
+        #urls = response.xpath('//table[contains(@class, "tbimg")]/tr')
+        for i in range(2,17):
+            url = url.xpath('//*[@id="form1"]/div[3]/div[3]/div[1]/div['+str(i)+']/div[1]/h3/a[1]').extract()
+            if len(url) == 1:
+                r.lpush('myspider:start_urls', url[0])
+        return el.load_item()

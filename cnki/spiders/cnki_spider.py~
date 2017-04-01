@@ -1,0 +1,16 @@
+import scrapy
+
+class CnkiSpider(scrapy.spider):
+	name = "cnki"
+	allowed_domains = ['cnki.net']
+	
+	def start_requests(self):
+		urls = [
+			'http://www.cnki.net'
+		]
+		for url in urls:
+			yield scrapy.Request(url = url, callback = self.parse)
+			
+	def parse(self,response):
+		
+		
