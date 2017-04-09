@@ -20,9 +20,9 @@ class CnkiSpider(Spider):
 
     #Set the browser to no-pic mode.
     chrome_option = webdriver.ChromeOptions()
-    pref = {"profile.managed_default_content_settings.images":2}
-    chrome_options.add_experimental_option("prefs",pref)
-    driver = webdriver.Chrome(chrome_options = chrome_option)
+    prefs = {"profile.managed_default_content_settings.images":2}
+    chrome_options.add_experimental_option("prefs",prefs)
+    driver = webdriver.Chrome(chrome_options = chrome_options)
 
     def parse(self, response):
 
